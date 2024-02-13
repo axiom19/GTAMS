@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Student{% endblock %}
+{% block navbar %}
+<div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+      <a href="/" class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+        <img src="{{ url_for('static', filename='svgs/student-svgrepo-com.svg') }}" height="40" alt="Bootstrap" />
+      </a>
+
+      <ul class="nav nav-pills">
+        <li class="nav-item"><a href="{{url_for('student')}}" class="nav-link active" aria-current="page">Home</a></li>
+        <li class="nav-item"><a href="" class="nav-link">Dashboard</a></li>
+        <li class="nav-item"><a href="#" class="nav-link">Academic Calender</a></li>
+      </ul>
+    </header>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column align-items-center justify-content-center"">
+  <main class="px-3 text-center">
+
+    <h1>Apply for Teaching Assistant Positions!!</h1>
+    <p class="lead">Do check the academic calendar to see the opening dates of applications.</p>
+    <hr>
+
+    <p class="lead">Please note that this is a prototype and is not connected to any North University systems.</p>
+    <p class="lead">
+      <a href="{{url_for('apply')}}" class="btn btn-lg btn-light fw-bold border-light bg-primary">Apply Here</a>
+    </p>
+  </main>
+</div>
+
+{% endblock %}
+
