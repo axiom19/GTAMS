@@ -1,0 +1,17 @@
+footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: #c4bdac;
+  color: white;
+  text-align: center;
+}
+
+/* Responsive Design: Adjust .title size and alignment on smaller screens */
+@media (max-width: 768px) {
+    .top .title {
+        width: auto; /* Adjust width based on the screen size */
+        padding-left: 15px; Adjust padding for smaller screens
+    }
+}
