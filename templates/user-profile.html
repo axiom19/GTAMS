@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}User Profile{% endblock %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <h2>User Profile</h2>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th scope="col">Field</th>
+            <th scope="col">Details</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>First Name</td>
+            <td>{{ user.first_name }}</td>
+        </tr>
+        <tr>
+            <td>Last Name</td>
+            <td>{{ user.last_name }}</td>
+        </tr>
+        <tr>
+            <td>Email</td>
+            <td>{{ user.email }}</td>
+        </tr>
+        <tr>
+            <td>DOB</td>
+            <td>{{ user.dob }}</td>
+        </tr>
+        <tr>
+            <td>User Type</td>
+            <td>{{ user.user_type }}</td>
+        </tbody>
+    </table>
+    <a href="javascript:history.back()" class="btn btn-primary">Go Back</a>
+</div>
+{% endblock %}

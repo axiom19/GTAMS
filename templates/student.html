@@ -1,35 +1,84 @@
 {% extends "base.html" %}
-{% block title %}Student{% endblock %}
+{% block title %}Student Dashboard{% endblock %}
 {% block navbar %}
 <div class="container">
     <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
       <a href="/" class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
-        <img src="{{ url_for('static', filename='svgs/student-svgrepo-com.svg') }}" height="40" alt="Bootstrap" />
+        <img src="{{ url_for('static', filename='svgs/student-svgrepo-com.svg') }}" height="40" alt="Student Icon" />
       </a>
-
       <ul class="nav nav-pills">
-        <li class="nav-item"><a href="{{url_for('student')}}" class="nav-link active" aria-current="page">Home</a></li>
-        <li class="nav-item"><a href="" class="nav-link">Dashboard</a></li>
-        <li class="nav-item"><a href="#" class="nav-link">Academic Calender</a></li>
+        <li class="nav-item"><a href="{{url_for('student_dashboard')}}" class="nav-link active" aria-current="page">Home</a></li>
+        <li class="nav-item"><a href="{{url_for('user_profile')}}" class="nav-link">Profile</a></li>
+        <li class="nav-item"><a href="{{url_for('logout')}}" class="nav-link">Logout</a></li>
       </ul>
     </header>
-  </div>
+</div>
 {% endblock %}
 
-{% block content %}
-<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column align-items-center justify-content-center"">
-  <main class="px-3 text-center">
 
-    <h1>Apply for Teaching Assistant Positions!!</h1>
-    <p class="lead">Do check the academic calendar to see the opening dates of applications.</p>
+{% block content %}
+
+<div class="alert alert-primary" role="alert">
+  Applications are open for the Fall 2024 semester. <a href="{{ url_for('apply') }}" class="alert-link">Apply Now</a>.
+</div>
+
+<div class="container mt-5">
+    <h2>Welcome, {{ student_name }}!</h2>
+    <p>Here's your dashboard where you can manage your TA applications.</p>
     <hr>
 
-    <p class="lead">Please note that this is a prototype and is not connected to any North University systems.</p>
-    <p class="lead">
-      <a href="{{url_for('apply')}}" class="btn btn-lg btn-light fw-bold border-light bg-primary">Apply Here</a>
-    </p>
-  </main>
+<div class="container mt-4">
+    <h3>Your Applications</h3>
+
+<!--    TODO: Fix the applications table-->
+
+    {% if applications %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Course</th>
+                <th>Application Date</th>
+<!--                <th>Status</th>-->
+                <th>View</th>
+                <th>Delete Application</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for application in applications %}
+            <tr>
+                <td>{{ application.subject }}</td>
+                <td>{{ application.application_date }}</td>
+<!--                <td>{{ application.status }}</td> -->
+                <td><a href="{{url_for('view_application', application_id=application.id)}}">View</a></td>
+                <td>
+                    <a href="{{url_for('delete_application', application_id=application.id)}}">✘</a>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No applications found.</p>
+    {% endif %}
+</div>
+
+    <hr>
+        <!-- Apply for TA Position using Cards -->
+<div class="container mt-5 align-items-center justify-content-center">
+        <div class="col-lg-6 col-md-12 mb-3 ">
+            <div class="card ">
+                <div class="card-header">
+                    Apply for a TA Position
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">TA Application</h5>
+                    <p class="card-text">Apply for a teaching assistant position in Northern University! </p>
+                    <a href="{{ url_for('apply') }}" class="btn btn-outline-primary">Apply Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
-
