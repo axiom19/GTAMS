@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block navbar %}
+<div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <a href="{{url_for('admin_dashboard')}}"
+           class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+            <img src="{{ url_for('static', filename='svgs/admin-svg.png') }}" height="40" alt="Admin Icon"/>
+        </a>
+        <ul class="nav nav-pills">
+            <li class="nav-item"><a href="{{url_for('admin_dashboard')}}" class="nav-link active" aria-current="page">Home</a>
+            </li>
+            <li class="nav-item"><a href="{{url_for('all_applications')}}" class="nav-link">View Applications</a></li>
+            <li class="nav-item"><a href="{{url_for('user_profile')}}" class="nav-link">Profile</a></li>
+            <li class="nav-item"><a href="{{url_for('logout')}}" class="nav-link">Logout</a></li>
+        </ul>
+    </header>
+</div>
+{% endblock %}
+
+<!-- TODO: Manage subjects -->
+{% block content %}
+<div class="container mt-5">
+    <div class="container text-center mt-4">
+        <h2>Welcome, {{ admin_name }}!</h2>
+        <p>Here's your dashboard where you can manage subjects and applications.</p>
+        <hr>
+    </div>
+
+
+    <div class="container text-center mt-4">
+        <h3>Manage Subjects</h3>
+        <p>Here you can add, edit, and delete subjects.</p>
+
+        {% if subjects is not none and subjects|length > 0 %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Subject Name</th>
+                    <th>Instructor</th>
+                    <th>Change</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for subject in subjects %}
+                <tr>
+                    <td>{{ subject['code'] }}</td>
+                    <td>{{ subject['name'] }}</td>
+                    <td>{{ subject['faculty'] }}</td>
+                    <td>
+                        <a href="{{url_for('edit_subject', subject_id=subject['id'])}}">Edit ✎</a> /
+                        <a href="{{url_for('delete_subject', subject_id=subject['id'])}}">Delete ✘</a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p><b>No subjects found.</b></p>
+        {% endif %}
+        <a href="{{url_for('add_subject')}}" class="btn btn-primary">Add Subject</a>
+    </div>
+
+    <hr>
+
+</div>
+</div>
+</div>
+
+
+{% endblock %}
+
+
+

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}All Applications{% endblock %}
+{% block navbar %}
+<div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <a href="{{url_for('admin_dashboard')}}"
+           class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+            <img src="{{ url_for('static', filename='svgs/admin-svg.png') }}" height="40" alt="Admin Icon"/>
+        </a>
+        <ul class="nav nav-pills">
+            <li class="nav-item"><a href="{{url_for('admin_dashboard')}}" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="{{url_for('all_applications')}}" class="nav-link active" aria-current="page">View
+                Applications</a>
+            </li>
+            <li class="nav-item"><a href="{{url_for('user_profile')}}" class="nav-link">Profile</a></li>
+            <li class="nav-item"><a href="{{url_for('logout')}}" class="nav-link">Logout</a></li>
+        </ul>
+    </header>
+</div>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="container mt-4">
+    <div class="container text-center mt-4">
+        <h2>Manage Applications</h2>
+        <p>Here's your dashboard where you can manage student applications.</p>
+        <hr>
+    </div>
+    <hr>
+    <h3>Application Details</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>E-mail</th>
+            <th>Subject</th>
+            <th>Grade</th>
+            <th>Application Date</th>
+        </tr>
+        </thead>
+        {% for application in applications %}
+        <tbody>
+        <tr>
+            <td>{{ application.first_name }} {{ application.last_name }}</td>
+            <td>{{ application.email }}</td>
+            <td>{{ application.subject }}</td>
+            <td>{{ application.grade }}</td>
+            <td>{{ application.application_date }}</td>
+        </tbody>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}

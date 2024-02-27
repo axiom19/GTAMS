@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}View Application{% endblock %}
+{% block navbar %}
+<div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <a href="/" class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+            <img src="{{ url_for('static', filename='svgs/student-svgrepo-com.svg') }}" height="40" alt="Student Icon"/>
+        </a>
+        <ul class="nav nav-pills">
+            <li class="nav-item"><a href="{{url_for('student_dashboard')}}" class="nav-link active" aria-current="page">Home</a>
+            </li>
+            <li class="nav-item"><a href="{{url_for('user_profile')}}" class="nav-link">Profile</a></li>
+            <li class="nav-item"><a href="{{url_for('logout')}}" class="nav-link">Logout</a></li>
+        </ul>
+    </header>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Application View</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <h2>Application Details</h2>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Field</th>
+            <th>Value</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>First Name</td>
+            <td>{{ application_data.first_name }}</td>
+        </tr>
+        <tr>
+            <td>Middle Name</td>
+            <td>{{ application_data.middle_name }}</td>
+        </tr>
+        <tr>
+            <td>Last Name</td>
+            <td>{{ application_data.last_name }}</td>
+        </tr>
+        <tr>
+            <td>Email</td>
+            <td>{{ application_data.email }}</td>
+        </tr>
+        <tr>
+            <td>Date of Birth</td>
+            <td>{{ application_data.dob }}</td>
+        </tr>
+        <tr>
+            <td>Phone</td>
+            <td>{{ application_data.phone }}</td>
+        </tr>
+        <tr>
+            <td>Address</td>
+            <td>{{ application_data.address }}</td>
+        </tr>
+        <tr>
+            <td>Subject</td>
+            <td>{{ application_data.subject }}</td>
+        </tr>
+        <tr>
+            <td>Application Date</td>
+            <td>{{ application_data.application_date }}</td>
+        </tr>
+        <tr>
+            <td>Grade</td>
+            <td>{{ application_data.grade }}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+
+{% endblock %}
+```
+

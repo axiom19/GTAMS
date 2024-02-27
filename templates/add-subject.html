@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Add Subject{% endblock %}
+
+{% from "bootstrap/form.html" import render_form %}
+
+{% block navbar %}
+<div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <a href="{{url_for('admin_dashboard')}}" class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+            <img src="{{ url_for('static', filename='svgs/admin-svg.png') }}" height="40" alt="Admin Icon"/>
+        </a>
+        <ul class="nav nav-pills">
+            <li class="nav-item"><a href="{{url_for('admin_dashboard')}}" class="nav-link active" aria-current="page">Home</a>
+            </li>
+            <li class="nav-item"><a href="{{url_for('user_profile')}}" class="nav-link">Profile</a></li>
+            <li class="nav-item"><a href="{{url_for('logout')}}" class="nav-link">Logout</a></li>
+        </ul>
+    </header>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+    {% if is_edit %}
+    <h2>Edit Subject</h2>
+    <p>Here you can edit the details of the subject below.</p>
+    {% else %}
+    <h2>Add Subject</h2>
+    <p>Here you can add a new subject to the system.</p>
+    {% endif %}
+    <hr>
+
+    <div class="container mt-4">
+        <h3>Subject Details</h3>
+        <p>Enter the details of the subject below.</p>
+        <form method="post">
+            {{ render_form(form) }}
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}
