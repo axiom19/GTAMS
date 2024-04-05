@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Committee Members{% endblock %}
+{% block navbar %}
+<div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <a href="{{url_for('admin_dashboard')}}"
+           class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+            <img src="{{ url_for('static', filename='svgs/committee.png') }}" height="40" alt="Admin Icon"/>
+        </a>
+        <ul class="nav nav-pills">
+            <li class="nav-item"><a href="{{url_for('committee')}}" class="nav-link">Home</a>
+            </li>
+            <li class="nav-item"><a href="{{url_for('committee_applications')}}" class="nav-link active"
+                                    aria-current="page">View
+                Applications</a></li>
+            <li class="nav-item"><a href="{{url_for('user_profile')}}" class="nav-link">Profile</a></li>
+            <li class="nav-item"><a href="{{url_for('logout')}}" class="nav-link">Logout</a></li>
+        </ul>
+    </header>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="text-center">
+        <h2>Welcome to Application View!</h2>
+        <p>Here's your dashboard where you can manage student applications.</p>
+    </div>
+    <hr>
+    <h3>Application Details</h3>
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Sort Applications
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('committee_applications', view=1) }}">All Applicants</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('committee_applications', view=2) }}">Top Applicants</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('committee_applications', view=3) }}">Referred Applicants</a>
+            </li>
+        </ul>
+    </div>
+    <div class="container mt-4">
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>E-mail</th>
+                <th>Subject</th>
+                <th>Grade</th>
+                <th>Application Date</th>
+                <th>Match Score</th>
+                <th>Reference</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            {% for application in applications %}
+            <tbody>
+            <tr>
+                <td>{{ application.first_name }} {{ application.last_name }}</td>
+                <td>{{ application.email }}</td>
+                <td>{{ application.subject }}</td>
+                <td>{{ application.grade }}</td>
+                <td>{{ application.application_date }}</td>
+                <td>{{ application.match_score }}</td>
+                <td>{{ 'YES' if application.referred else 'NO' }}</td>
+                <td>{{ application.status }}</td>
+                <td>
+                    {% if application.status == 'Pending' %}
+                    <!-- Accept Form -->
+                    <form action="{{ url_for('accept_student', application_id=application.id) }}" method="post"
+                          style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-primary btn-sm">Accept</button>
+                    </form>
+                    |
+                    <!-- Reject Form -->
+                    <form action="{{ url_for('reject_student', application_id=application.id) }}" method="post"
+                          style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                    {% else %}
+                    <a href="{{url_for('view_application', application_id=application.id)}}"
+                       class="btn btn-primary btn-sm">View Application</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+{% endblock %}

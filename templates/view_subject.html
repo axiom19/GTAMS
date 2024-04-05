@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}View Application{% endblock %}
+{% block navbar %}
+<div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <a href="{{url_for('admin_dashboard')}}"
+           class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+            <img src="{{ url_for('static', filename='svgs/committee.png') }}" height="40" alt="Admin Icon"/>
+        </a>
+        <ul class="nav nav-pills">
+            <li class="nav-item"><a href="{{url_for('committee')}}" class="nav-link">Home</a>
+            </li>
+            <li class="nav-item"><a href="{{url_for('committee_applications')}}" class="nav-link">View
+                Applications</a></li>
+            <li class="nav-item"><a href="{{url_for('user_profile')}}" class="nav-link">Profile</a></li>
+            <li class="nav-item"><a href="{{url_for('logout')}}" class="nav-link">Logout</a></li>
+        </ul>
+    </header>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Subject View</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <h2>Subject Details</h2>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Field</th>
+            <th>Value</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Subject Code</td>
+            <td>{{ subject.code }}</td>
+        </tr>
+        <tr>
+            <td>Subject Name</td>
+            <td>{{ subject.name }}</td>
+        </tr>
+        <tr>
+            <td>Faculty</td>
+            <td>{{ subject.faculty }}</td>
+        </tr>
+        <tr>
+            <td>Description</td>
+            <td>{{ subject.description }}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+
+{% endblock %}
+```
+

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Committee Members{% endblock %}
+{% block navbar %}
+<div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <a href="{{url_for('admin_dashboard')}}"
+           class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+            <img src="{{ url_for('static', filename='svgs/committee.png') }}" height="40" alt="Admin Icon"/>
+        </a>
+        <ul class="nav nav-pills">
+            <li class="nav-item"><a href="{{url_for('committee')}}" class="nav-link active" aria-current="page">Home</a>
+            </li>
+            <li class="nav-item"><a href="{{url_for('committee_applications')}}" class="nav-link">View Applications</a></li>
+            <li class="nav-item"><a href="{{url_for('user_profile')}}" class="nav-link">Profile</a></li>
+            <li class="nav-item"><a href="{{url_for('logout')}}" class="nav-link">Logout</a></li>
+        </ul>
+    </header>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center">
+        <h2>Welcome, {{ name }}!</h2>
+        <p>Here's your dashboard where you see the available subjects and their descriptions.</p>
+    </div>
+    <hr>
+    <h3>Available Subjects</h3>
+    <div class="row">
+        {% if subjects %}
+        {% for subject in subjects %}
+        <div class="col-md-4 mb-4 d-flex align-items-stretch">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ subject.name }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ subject.code }}</h6>
+                    <p class="card-text text-truncate" style="max-height: 3.6em;">{{ subject.description }}</p>
+                    <footer class="blockquote-footer mt-auto">Faculty: {{ subject.faculty }}</footer>
+                </div>
+                <div class="card-footer">
+                    <a href="{{url_for('view_subject', subject_id=subject.id)}}" class="btn btn-primary btn-sm">Show More</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="col-md-12">
+            <div class="alert alert-warning" role="alert">
+                No subjects available. Please revert to Administration to add some subjects.
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

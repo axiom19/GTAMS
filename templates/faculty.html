@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Instructor Dashboard{% endblock %}
+{% block navbar %}
+<div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <a href="{{url_for('admin_dashboard')}}"
+           class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
+            <img src="{{ url_for('static', filename='svgs/Professor.png') }}" height="40" alt="Admin Icon"/>
+        </a>
+        <ul class="nav nav-pills">
+            <li class="nav-item"><a href="{{url_for('faculty')}}" class="nav-link active" aria-current="page">Home</a>
+            </li>
+            <li class="nav-item"><a href="{{url_for('user_profile')}}" class="nav-link">Profile</a></li>
+            <li class="nav-item"><a href="{{url_for('logout')}}" class="nav-link">Logout</a></li>
+        </ul>
+    </header>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center mt-4">
+        <h2>Welcome, {{ current_user.first_name }}!</h2>
+        <p>Here's your dashboard where you can evaluate the assigned Teaching Assistants.</p>
+        <hr>
+    </div>
+
+    <div class="d-flex justify-content-center">
+        <div class="card w-50 text-center">
+            {% if subject %}
+            <h5 class="card-header">{{ subject.name }} ({{ subject.code }})</h5>
+            <div class="card-body">
+                {% if ta %}
+                <h5 class="card-title"><b>{{ ta.first_name }} {{ ta.last_name }}</b></h5>
+                <p class="card-text">Email: {{ ta.email }} <br> Phone: {{ ta.phone }}</p>
+                <p class="card-text">Evaluate the Teaching Assistant for the semester.</p>
+                <a href="{{ url_for('evaluate_ta', ta_id=ta.id) }}" class="btn btn-primary">Go to Evaluation</a>
+                {% else %}
+                <p class="card-text">No TA assigned yet.</p>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="alert alert-warning" role="alert">
+                You do not have any subject assigned yet.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

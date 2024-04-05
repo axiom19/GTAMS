@@ -20,16 +20,22 @@
 {% endblock %}
 
 {% block content %}
-
-
 <div class="container mt-4">
-    <div class="container text-center mt-4">
+    <div class="text-center">
         <h2>Manage Applications</h2>
         <p>Here's your dashboard where you can manage student applications.</p>
-        <hr>
     </div>
     <hr>
     <h3>Application Details</h3>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert {{ 'alert-danger' if category == 'error' else 'alert-info' }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
     <table class="table">
         <thead>
         <tr>
@@ -38,19 +44,32 @@
             <th>Subject</th>
             <th>Grade</th>
             <th>Application Date</th>
+            <th>Match Score</th>
+            <th>Refer</th>
         </tr>
         </thead>
-        {% for application in applications %}
         <tbody>
+        {% for application in applications %}
         <tr>
             <td>{{ application.first_name }} {{ application.last_name }}</td>
             <td>{{ application.email }}</td>
             <td>{{ application.subject }}</td>
             <td>{{ application.grade }}</td>
             <td>{{ application.application_date }}</td>
-        </tbody>
+            <td>{{ application.match_score }}</td>
+            <td>
+                {% if application.referred %}
+                <span>Referred</span>
+                {% else %}
+                <form action="{{ url_for('refer_student', application_id=application.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-primary btn-sm">Refer</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
         {% endfor %}
+        </tbody>
     </table>
 </div>
-
 {% endblock %}

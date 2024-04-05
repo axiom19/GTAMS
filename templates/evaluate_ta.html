@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Evaluate TA{% endblock %}
+
+{% block navbar %}
+<!-- Your existing navbar block -->
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center mt-4">
+        <h2>Welcome, {{ current_user.first_name }}!</h2>
+        <p>Here's your dashboard where you can evaluate the assigned Teaching Assistants.</p>
+        <hr>
+    </div>
+
+    <div class="container mt-4">
+        <h3>Subject Details</h3>
+        <p>Enter the details of the subject below.</p>
+        <form method="post">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.student_id.label(class="form-label") }}
+                {{ form.student_id(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.subject.label(class="form-label") }}
+                {{ form.subject(class="form-control") }}
+            </div>
+
+            <!-- Render inline radio buttons -->
+            {% macro render_inline_radio(field) %}
+            <div class="mb-3">
+                {{ field.label(class="form-label") }}
+                <div>
+                    {% for subfield in field %}
+                        <div class="form-check form-check-inline">
+                            {{ subfield(class="form-check-input") }}
+                            {{ subfield.label(class="form-check-label") }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endmacro %}
+
+            <!-- Call the macro for each RadioField -->
+            {{ render_inline_radio(form.hours_done) }}
+            {{ render_inline_radio(form.communication) }}
+            {{ render_inline_radio(form.office_hours_put_in) }}
+            {{ render_inline_radio(form.assignment_checking) }}
+
+            <div class="text-center">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
