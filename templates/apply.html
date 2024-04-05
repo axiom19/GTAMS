@@ -7,30 +7,40 @@
 {% block content %}
 <div class="container">
     <div class="row">
-        <div class="col-sm-12 col-md-8 form-control mb-3">
+        <div class="col-sm-12 col-md-8 mb-3">
             {% if is_edit %}
             <h1>Edit Application</h1>
             <p>Here you can edit the details of the application below.</p>
             {% else %}
-
             <h1>TA Application Form</h1>
             <p>Apply for a teaching assistant position in Northern University!</p>
+
+            <!-- Card for Available Subjects -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Available Subjects</h5>
+                    <p class="card-text">
+                        <ul>
+                        {% for subject in subject_names %}
+                            <li>{{ subject }}</li>
+                        {% endfor %}
+                        </ul>
+                    </p>
+                </div>
+            </div>
             {% endif %}
 
             {% with messages = get_flashed_messages(with_categories=True) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert {{ 'alert-danger' if category == 'error' else 'alert-info' }}" role="alert">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert {{ 'alert-danger' if category == 'error' else 'alert-info' }}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
             {% endwith %}
 
-
             {{ render_form(form, novalidate=True) }}
-
-
         </div>
     </div>
 </div>
