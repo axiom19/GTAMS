@@ -3,21 +3,33 @@
 # import statements
 from flask import Flask, render_template, redirect, url_for, request, flash, current_app, send_file
 from flask_bootstrap import Bootstrap5
-from forms import SignUpForm, ApplicationForm, AddSubjectForm
+from flask_wtf import CSRFProtect
+from forms import SignUpForm, ApplicationForm, AddSubjectForm, TaEvaluationForm
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user, login_required
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Integer, String, LargeBinary
-from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import datetime
-import io
+import os
+from resume_matcher import ResumeMatcher
+from resume_parser import ResumeParser
+from flask_migrate import Migrate
+from sqlalchemy.exc import SQLAlchemyError
+from collections import defaultdict
 
 # Flask constructor
 app = Flask(__name__)
 Bootstrap5(app)
 app.secret_key = "CSRF secret key"
+
+csrf = CSRFProtect(app)
+
+app.config['UPLOAD_FOLDER'] = 'path/to/upload/folder'
+upload_dir = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
+if not os.path.exists(upload_dir):
+    os.makedirs(upload_dir)
 
 
 # Create Database
@@ -28,6 +40,7 @@ class Base(DeclarativeBase):
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
+migrate = Migrate(app, db)
 
 # TODO: Login Configuration
 login_manager = LoginManager()
@@ -61,6 +74,9 @@ class StudentApplication(db.Model):
     subject: Mapped[str] = mapped_column(String(250), nullable=False)
     grade: Mapped[str] = mapped_column(String(250), nullable=False)
     resume: Mapped[str] = mapped_column(LargeBinary, nullable=False)
+    match_score: Mapped[str] = mapped_column(String(250))
+    referred: Mapped[bool] = mapped_column(Integer, default=0)
+    status: Mapped[str] = mapped_column(String(250), default='Pending')
 
 
 class Subjects(db.Model):
@@ -68,7 +84,19 @@ class Subjects(db.Model):
     name: Mapped[str] = mapped_column(String(250), nullable=False)
     code: Mapped[str] = mapped_column(String(250), nullable=False)
     faculty: Mapped[str] = mapped_column(String(250), nullable=False)
-    # students = relationship('StudentApplication', backref='subject')
+    description: Mapped[str] = mapped_column(String(1000), nullable=False)
+
+
+class TA_Evaluation(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    faculty_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    ta_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    subject: Mapped[str] = mapped_column(String(250), nullable=False)
+    hours_done: Mapped[str] = mapped_column(String(1000), nullable=False)
+    communication: Mapped[str] = mapped_column(String(1000), nullable=False)
+    office_hours_put_in: Mapped[str] = mapped_column(String(1000), nullable=False)
+    assignment_checking: Mapped[str] = mapped_column(String(1000), nullable=False)
+    overall_rating: Mapped[str] = mapped_column(String(1000), nullable=False)
 
 
 with app.app_context():
@@ -77,7 +105,7 @@ with app.app_context():
 
 @login_manager.user_loader
 def load_user(user_id):
-    return Users.query.get(int(user_id))
+    return db.session.query(Users).get(user_id)
 
 
 ############## SIGN UP ##############
@@ -161,7 +189,30 @@ def apply():
     date = datetime.datetime.now().strftime('%m-%d-%Y')
     if form.validate_on_submit():
         cv_file = form.resume.data
+
+        # resume to text
+        filename = secure_filename(cv_file.filename)
+        resume_dir = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], 'resumes')
+        if not os.path.exists(resume_dir):
+            os.makedirs(resume_dir)
+        resume_path = os.path.join(resume_dir, filename)
+
+        cv_file.save(resume_path)
+
+        cv_file.seek(0)
         cv_content = cv_file.read()
+
+        parser = ResumeParser(resume_path)
+        resume_text = parser.parse_resume()
+
+        selected_subject = form.subject.data
+        subject_data = db.session.execute(db.select(Subjects).where(Subjects.name == selected_subject)).scalar()
+        subject_description = subject_data.description
+
+        # match resume to subject
+        matcher = ResumeMatcher(subject_description)
+        match_score = round(matcher.compute_match_score(resume_text), 4)
+
         new_application = StudentApplication(
             resume=cv_content,
             first_name=form.first_name.data,
@@ -173,17 +224,21 @@ def apply():
             address=form.address.data,
             subject=form.subject.data,
             application_date=date,
-            grade=form.grade.data
+            grade=form.grade.data,
+            match_score=match_score
         )
         db.session.add(new_application)
         db.session.commit()
+
         return redirect(url_for('student_dashboard'))
-    return render_template('apply.html', form=form)
+    return render_template('apply.html', form=form, subject_names=get_subject_names())
 
 
 @app.route('/view-application/<int:application_id>', methods=['GET', 'POST'])
 def view_application(application_id):
     application = db.get_or_404(StudentApplication, application_id)
+    # download resume
+
     return render_template('view_application.html', application_data=application)
 
 
@@ -192,19 +247,19 @@ def delete_application(application_id):
     application = db.get_or_404(StudentApplication, application_id)
     db.session.delete(application)
     db.session.commit()
+    return redirect(url_for('student_dashboard'))
 
 
 ############## ADMIN PAGE ##############
 
-@app.route('/admin', methods=['GET', 'POST'])
 @login_required
+@app.route('/admin', methods=['GET', 'POST'])
 def admin_dashboard():
-    subject_scalars = db.session.execute(db.select(Subjects)).scalars()
+    subject_scalars = get_all_subjects()
     subjects = [{"id": subject.id, "code": subject.code, "name": subject.name, "faculty": subject.faculty} for subject
                 in
                 subject_scalars]
-    return render_template('admin.html', admin_name=current_user.first_name, subjects=subjects,
-                           applications=get_all_applications())
+    return render_template('admin.html', admin_name=current_user.first_name, subjects=subjects)
 
 
 @login_required
@@ -215,12 +270,20 @@ def add_subject():
         new_subject = Subjects(
             name=form.subject_name.data,
             code=form.subject_code.data,
-            faculty=form.faculty.data
+            faculty=form.faculty.data,
+            description=form.description.data
         )
         db.session.add(new_subject)
         db.session.commit()
         return redirect(url_for('admin_dashboard'))
     return render_template('add-subject.html', form=form)
+
+
+@login_required
+@app.route('/view_subject/<int:subject_id>', methods=['GET', 'POST'])
+def view_subject(subject_id):
+    subject = db.get_or_404(Subjects, subject_id)
+    return render_template('view_subject.html', subject=subject)
 
 
 @login_required
@@ -253,21 +316,145 @@ def delete_subject(subject_id):
 @login_required
 @app.route('/all-applications', methods=['GET', 'POST'])
 def all_applications():
-    applications = get_all_applications()
+    applications = StudentApplication.query.filter(StudentApplication.grade == 'A').order_by(
+        StudentApplication.match_score.desc()).all()
     return render_template('all_applications.html', applications=applications)
 
 
-############## COMMITTEE PAGE ##############
+@app.route('/refer-student/<int:application_id>', methods=['POST'])
+@login_required
+def refer_student(application_id):
+    try:
+        application = db.session.get(StudentApplication, application_id)
+        if application:
+            application.referred = True
+            db.session.commit()
+            flash('Student referred to the committee successfully!', 'success')
+        else:
+            flash('Application not found.', 'error')
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        flash('An error occurred while referring the student.', 'error')
+    return redirect(url_for('all_applications'))
 
+
+############## COMMITTEE PAGE ##############
+@login_required
 @app.route('/committee', methods=['GET', 'POST'])
 def committee():
-    pass
+    all_subjects = get_all_subjects()
+    return render_template('committee.html', subjects=all_subjects, name=current_user.first_name)
+
+
+@login_required
+@app.route('/committee-applications/', defaults={'view': 1})
+@app.route('/committee-applications/<int:view>', methods=['GET', 'POST'])
+def committee_applications(view):
+    if view == 1:
+        applications = db.session.execute(db.select(StudentApplication)).scalars().all()
+    elif view == 2:
+        applications = get_top_students()
+    elif view == 3:
+        applications = get_referred_students()
+    else:
+        applications = []
+
+    return render_template(
+        'committee_applications.html',
+        applications=applications,
+        view=view
+    )
+
+
+@app.route('/accept-student/<int:application_id>', methods=['POST'])
+@login_required
+def accept_student(application_id):
+    try:
+        application = db.session.execute(
+            db.select(StudentApplication).where(StudentApplication.id == application_id)).scalar()
+        if application:
+            # accept student
+            application.status = 'Accepted'
+            # reject all others in that subject
+            db.session.query(StudentApplication) \
+                .filter(StudentApplication.id != application_id,
+                        StudentApplication.subject == application.subject) \
+                .update({"status": "Rejected"})
+            db.session.commit()
+            flash('Student accepted successfully!', 'success')
+        else:
+            flash('Application not found.', 'error')
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        flash('An error occurred while accepting the student.', 'error')
+    return redirect(url_for('committee_applications'))
+
+
+@app.route('/reject-student/<int:application_id>', methods=['POST'])
+@login_required
+def reject_student(application_id):
+    try:
+        application = db.session.execute(
+            db.select(StudentApplication).where(StudentApplication.id == application_id)).scalar()
+        if application:
+            # reject student
+            application.status = 'Rejected'
+            db.session.commit()
+            flash('Student rejected successfully!', 'success')
+        else:
+            flash('Application not found.', 'error')
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        flash('An error occurred while rejecting the student.', 'error')
+    return redirect(url_for('committee_applications'))
 
 
 ############## FACULTY PAGE ##############
+
+
 @app.route('/faculty', methods=['GET', 'POST'])
+@login_required
 def faculty():
-    pass
+    # Concatenate first and last names to match the 'faculty' field in 'Subjects' table
+    faculty_name = f"{current_user.first_name} {current_user.last_name}"
+    form = TaEvaluationForm()
+    # Fetch the single subject associated with this faculty member
+    subject = db.session.execute(db.select(Subjects).where(Subjects.faculty == faculty_name)).scalar()
+
+    if not subject:
+        # if the faculty does not have an assigned subject, display an error message
+        flash('You are not added to the system yet. Contact Admin.', 'warning')
+        return render_template('faculty_error.html', name=faculty_name)
+
+    # Fetch the single accepted TA for this subject, if any
+
+    ta = db.session.execute(
+        db.select(StudentApplication).where(StudentApplication.subject == subject.name,
+                                            StudentApplication.status == 'Accepted')).scalar()
+
+    return render_template('faculty.html', current_user=current_user, subject=subject, ta=ta)
+
+
+@app.route('/faculty/evaluate_ta/<int:ta_id>', methods=['GET', 'POST'])
+@login_required
+def evaluate_ta(ta_id):
+    form = TaEvaluationForm()
+    if form.validate_on_submit():
+        new_evaluation = TA_Evaluation(
+            faculty_id=current_user.id,
+            ta_id=ta_id,
+            subject=form.subject.data,
+            hours_done=form.hours_done.data,
+            communication=form.communication.data,
+            office_hours_put_in=form.office_hours_put_in.data,
+            assignment_checking=form.assignment_checking.data,
+        )
+        db.session.add(new_evaluation)
+        db.session.commit()
+        flash('TA evaluation submitted successfully.', 'success')
+        # Redirect after form processing. Adjust as needed.
+        return redirect(url_for('faculty'))
+    return render_template('evaluate_ta.html', form=form)
 
 
 ############## OTHER FUNCTIONS ##############
@@ -297,10 +484,43 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 
-def get_all_applications():
-    applications = db.session.execute(db.select(StudentApplication)).scalars()
-    return applications
+def get_all_subjects():
+    subjects = db.session.execute(db.select(Subjects)).scalars()
+    return subjects
+
+
+def get_subject_names():
+    subjects = db.session.execute(db.select(Subjects)).scalars()
+    return [subject.name for subject in subjects]
+
+
+def get_referred_students():
+    referred_students_query = db.select(StudentApplication).where(StudentApplication.referred.is_(True))
+    referred_students = db.session.execute(referred_students_query).scalars().all()
+    return referred_students
+
+
+def get_top_students():
+    # Fetch all students with an 'A' grade
+    all_A_students_query = db.select(StudentApplication).where(StudentApplication.grade == 'A')
+    all_A_students = db.session.execute(all_A_students_query).scalars().all()
+
+    # Organize students by subject
+    students_by_subject = defaultdict(list)
+    for student in all_A_students:
+        students_by_subject[student.subject].append(student)
+
+    # Sort students within each subject by match_score in descending order
+    for subject in students_by_subject:
+        students_by_subject[subject].sort(key=lambda s: s.match_score, reverse=True)
+
+    # Get top 3 students per subject
+    top_students_per_subject = []
+    for subject, students in students_by_subject.items():
+        top_students_per_subject.extend(students[:3])
+
+    return top_students_per_subject
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=3000)
+    app.run(debug=True, port=2000)
