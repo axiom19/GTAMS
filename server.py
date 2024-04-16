@@ -18,6 +18,7 @@ from resume_parser import ResumeParser
 from flask_migrate import Migrate
 from sqlalchemy.exc import SQLAlchemyError
 from collections import defaultdict
+from email.mime.multipart import MIMEMultipart
 
 # Flask constructor
 app = Flask(__name__)
@@ -186,6 +187,8 @@ def student_dashboard():
 @login_required
 def apply():
     form = ApplicationForm()
+    subject_choices = get_subject_names()
+    form.subject.choices = subject_choices
     date = datetime.datetime.now().strftime('%m-%d-%Y')
     if form.validate_on_submit():
         cv_file = form.resume.data
@@ -231,15 +234,28 @@ def apply():
         db.session.commit()
 
         return redirect(url_for('student_dashboard'))
-    return render_template('apply.html', form=form, subject_names=get_subject_names())
+    return render_template('apply.html', form=form)
 
 
 @app.route('/view-application/<int:application_id>', methods=['GET', 'POST'])
 def view_application(application_id):
     application = db.get_or_404(StudentApplication, application_id)
-    # download resume
 
-    return render_template('view_application.html', application_data=application)
+    # download resume
+    if request.method == 'POST':
+        resume_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], 'resumes', 'resume.pdf')
+        with open(resume_path, 'wb') as f:
+            f.write(application.resume)
+        return send_file(resume_path, as_attachment=True)
+
+    return render_template('view_application.html', application_data=application, current_user=current_user)
+
+
+def download_resume(application):
+    resume_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], 'resumes', 'resume.pdf')
+    with open(resume_path, 'wb') as f:
+        f.write(application.resume)
+    return send_file(resume_path, as_attachment=True)
 
 
 @app.route('/delete-application/<int:application_id>', methods=['GET', 'POST'])
@@ -382,6 +398,9 @@ def accept_student(application_id):
                 .update({"status": "Rejected"})
             db.session.commit()
             flash('Student accepted successfully!', 'success')
+
+            # TODO: Send email to student
+
         else:
             flash('Application not found.', 'error')
     except SQLAlchemyError as e:
@@ -444,10 +463,8 @@ def evaluate_ta(ta_id):
             faculty_id=current_user.id,
             ta_id=ta_id,
             subject=form.subject.data,
-            hours_done=form.hours_done.data,
-            communication=form.communication.data,
-            office_hours_put_in=form.office_hours_put_in.data,
-            assignment_checking=form.assignment_checking.data,
+            _evaluation=form.hours_done.data,
+            date=datetime.datetime.now().strftime('%m-%d-%Y')
         )
         db.session.add(new_evaluation)
         db.session.commit()
