@@ -25,12 +25,19 @@ class ApplicationForm(FlaskForm):
     dob = DateField(label='Date of Birth', validators=[DataRequired()])
     phone = StringField(label='Phone Number', validators=[DataRequired()])
     address = StringField(label='Address', validators=[DataRequired()])
-    subject = StringField(label='Subject', validators=[DataRequired()])
+    # make dynamic choices from database in subjects
+    subject = SelectField(label='Subject', choices=['CS101', 'CS102', 'CS103', 'CS104'], validators=[DataRequired()])
     grade = SelectField(label='Grade', choices=['A', 'B', 'C', 'D', 'F'], validators=[DataRequired()])
+    previous_exp = SelectField(label='Previous Experience', choices=['Yes', 'No'], validators=[DataRequired()])
+    exp_details = CKEditorField(label='Experience Details')
     resume = FileField(label='Resume',
                        validators=[DataRequired(), FileAllowed(['pdf', 'doc', 'docx'], 'PDF, DOC, and DOCX only!')
                                    ])
     submit = SubmitField(label='Submit Application')
+
+
+    def change_subject_choices(self, choices):
+        self.subject.choices = choices
 
 
 class AddSubjectForm(FlaskForm):
