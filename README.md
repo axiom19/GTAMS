@@ -26,6 +26,8 @@ GTAMS is a comprehensive web application aimed at streamlining the process of ma
 5. **Initialize the database**: flask db upgrade
 6. **Run the application**: flask run
 
+## Check the youtube video for project demonstration
+https://youtu.be/lOjxlJvkIKE
 
 ## Contributing
 We welcome contributions from the community. Please use GitHub issues for bug reports, feature requests, or submitting pull requests.
