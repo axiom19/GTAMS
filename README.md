@@ -27,7 +27,7 @@ GTAMS is a comprehensive web application aimed at streamlining the process of ma
 6. **Run the application**: flask run
 
 ## Check the youtube video for project demonstration
-https://youtu.be/lOjxlJvkIKE
+https://youtu.be/PLJU8TwjPIc
 
 ## Contributing
 We welcome contributions from the community. Please use GitHub issues for bug reports, feature requests, or submitting pull requests.
